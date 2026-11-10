@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Events Catalog — Eventra</title>
+  <meta name="description" content="Discover and register for university club events, hackathons, seminars, and cultural festivals on Eventra.">
+</head>
+<body>
+
+  <!-- Dynamic Navigation Bar -->
+  <div id="navbar-container"></div>
+
+  <!-- Main Section -->
+  <main class="section">
+    <div class="container">
+      
+      <!-- Page Header -->
+      <div>
+        <div class="section-badge">Campus Events</div>
+        <h1>Explore Campus Events</h1>
+        <p>
+          Find upcoming competitions, symposiums, guest lectures, and cultural nights hosted by certified campus societies.
+        </p>
+      </div>
+
+      <!-- Filters & Search Toolbar -->
+      <div class="glass-card">
+        <div>
+          
+          <!-- Search Bar -->
+          <div>
+            <input 
+              type="text" 
+              id="event-search-input" 
+              class="form-control" 
+              placeholder="Search by event title, keyword, or venue..."
+            >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          </div>
+
+          <!-- Category Pills -->
+          <div id="category-pills">
+            <button class="btn btn-sm btn-primary cat-filter-btn" data-category="">All Categories</button>
+            <button class="btn btn-sm btn-glass cat-filter-btn" data-category="Technology">Tech &amp; AI</button>
+            <button class="btn btn-sm btn-glass cat-filter-btn" data-category="Cultural">Cultural &amp; Arts</button>
+            <button class="btn btn-sm btn-glass cat-filter-btn" data-category="Sports">Sports</button>
+            <button class="btn btn-sm btn-glass cat-filter-btn" data-category="Academic">Academic</button>
+            <button class="btn btn-sm btn-glass cat-filter-btn" data-category="Leadership">Leadership</button>
+          </div>
+
+          <!-- View Mode Toggle -->
+          <div>
+            <button class="btn btn-sm btn-glass" id="view-grid-btn">Grid</button>
+            <button class="btn btn-sm btn-glass" id="view-timeline-btn">Timeline</button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Events Grid View -->
+      <div id="events-grid-view">
+        <div id="all-events-grid">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- Events Timeline View -->
+      <div id="events-timeline-view">
+        <div class="timeline-track" id="full-events-timeline">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Global Footer -->
+  <footer class="footer">
+    <div class="container footer-bottom">
+      <div>&copy; 2026 Eventra. All rights reserved.</div>
+      <div>
+        <a href="index.html">Home</a>
+        <a href="clubs.html">Clubs</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
