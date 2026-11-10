@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Club Admin Portal — Eventra</title>
+  <meta name="description" content="Manage your university club events, extend registration deadlines, and view participant rosters.">
+</head>
+<body>
+
+  <!-- Dynamic Navigation Bar -->
+  <div id="navbar-container"></div>
+
+  <!-- Dashboard Layout -->
+  <div class="dashboard-layout">
+    
+    <!-- Sidebar -->
+    <aside class="dashboard-sidebar">
+      <div>
+        <div class="sidebar-profile">
+          <div class="sidebar-avatar" id="club-avatar">C</div>
+          <div>
+            <div class="sidebar-user-name" id="club-display-name">Club Admin</div>
+            <div class="sidebar-user-role" id="club-status-badge">Affiliated Club</div>
+          </div>
+        </div>
+
+        <ul class="sidebar-menu">
+          <li class="sidebar-item active" id="menu-events">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="18" y2="10"></line></svg>
+            <span>Club Events</span>
+          </li>
+          <li class="sidebar-item" id="menu-create">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <span>Create New Event</span>
+          </li>
+          <li class="sidebar-item" id="menu-roster">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            <span>Participant Roster</span>
+          </li>
+        </ul>
+      </div>
+
+      <div>
+        <button class="btn btn-sm btn-glass">
+          <span>Sign Out</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+      
+      <!-- 1. TAB: CLUB EVENTS -->
+      <section id="tab-events-view">
+        <div class="dashboard-header">
+          <div>
+            <h1 class="dashboard-title">Club Event Management</h1>
+            <p class="dashboard-subtitle">Monitor registrations, edit details, and manage deadlines.</p>
+          </div>
+          <button class="btn btn-primary">
+            <span>+ Create Event</span>
+          </button>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon-wrap stat-icon-cyan">📊</div>
+            <div>
+              <div class="stat-number" id="club-stat-total-events">0</div>
+              <div class="stat-label">Total Events</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon-wrap stat-icon-emerald">👥</div>
+            <div>
+              <div class="stat-number" id="club-stat-total-attendees">0</div>
+              <div class="stat-label">Total Registrations</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon-wrap stat-icon-purple">⏰</div>
+            <div>
+              <div class="stat-number" id="club-stat-active-events">0</div>
+              <div class="stat-label">Active Events</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Events Table -->
+        <div class="glass-card">
+          <h3>Hosted Events</h3>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Event Name</th>
+                  <th>Category</th>
+                  <th>Schedule</th>
+                  <th>Deadline</th>
+                  <th>Spots Filled</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="club-events-tbody">
+                <tr>
+                  <td colspan="6">
+                    Loading club events...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. TAB: CREATE EVENT WIZARD -->
+      <section id="tab-create-view">
+        <div class="dashboard-header">
+          <div>
+            <h1 class="dashboard-title">Create New Event</h1>
+            <p class="dashboard-subtitle">Set up registration parameters, schedule, capacity, and custom questions.</p>
+          </div>
+          <button class="btn btn-glass">Cancel</button>
+        </div>
+
+        <div class="wizard-box">
+          <form id="create-event-form">
+            
+            <div class="form-group">
+              <label class="form-label">Event Title <span class="required">*</span></label>
+              <input type="text" id="ev-title" class="form-control" placeholder="e.g. Annual University AI & Robotics Hackathon 2026" required>
+            </div>
+
+            <div>
+              <div class="form-group">
+                <label class="form-label">Category <span class="required">*</span></label>
+                <select id="ev-category" class="form-control" required>
+                  <option value="Technology">Technology &amp; Hackathon</option>
+                  <option value="Cultural">Cultural &amp; Festival</option>
+                  <option value="Sports">Sports Competition</option>
+                  <option value="Academic">Academic / Research Talk</option>
+                  <option value="Leadership">Leadership &amp; Workshop</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Venue / Hall <span class="required">*</span></label>
+                <input type="text" id="ev-venue" class="form-control" placeholder="Auditorium B / Innovation Hub" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Event Description <span class="required">*</span></label>
+              <textarea id="ev-description" class="form-control" placeholder="Provide event schedule, eligibility criteria, prize details, and prerequisites..." required></textarea>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Banner Image URL (Optional)</label>
+              <input type="url" id="ev-banner" class="form-control" placeholder="https://images.unsplash.com/...">
+            </div>
+
+            <div>
+              <div class="form-group">
+                <label class="form-label">Start Time <span class="required">*</span></label>
+                <input type="datetime-local" id="ev-start" class="form-control" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">End Time <span class="required">*</span></label>
+                <input type="datetime-local" id="ev-end" class="form-control" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Registration Deadline <span class="required">*</span></label>
+                <input type="datetime-local" id="ev-deadline" class="form-control" required>
+              </div>
+            </div>
+
+            <div>
+              <div class="form-group">
+                <label class="form-label">Maximum Capacity (Spots) <span class="required">*</span></label>
+                <input type="number" id="ev-capacity" class="form-control" min="1" max="10000" value="100" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Registration Mode <span class="required">*</span></label>
+                <select id="ev-reg-type" class="form-control" required>
+                  <option value="individual">Individual Participant</option>
+                  <option value="group">Team / Group Registration</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Custom Form Field Builder -->
+            <div>
+              <div>
+                <div>
+                  <h4>Custom Registration Questions</h4>
+                  <p>Request additional information from participants (e.g. GitHub link, T-Shirt size, dietary requirements).</p>
+                </div>
+                <button type="button" class="btn btn-sm btn-glass">+ Add Question</button>
+              </div>
+
+              <div id="custom-fields-rows">
+                <!-- Dynamically added custom questions -->
+              </div>
+            </div>
+
+            <div>
+              <button type="button" class="btn btn-glass">Cancel</button>
+              <button type="submit" class="btn btn-primary" id="btn-create-submit">
+                <span>Publish Event</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- 3. TAB: PARTICIPANT ROSTER -->
+      <section id="tab-roster-view">
+        <div class="dashboard-header">
+          <div>
+            <h1 class="dashboard-title">Participant Roster</h1>
+            <p class="dashboard-subtitle">Select an event to view registered students, team names, and responses.</p>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <div class="form-group">
+            <label class="form-label">Select Event</label>
+            <select id="roster-event-select" class="form-control">
+              <option value="">-- Choose Event --</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Student Name</th>
+                  <th>Student ID</th>
+                  <th>Email</th>
+                  <th>Team</th>
+                  <th>Registration Date</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="roster-tbody">
+                <tr>
+                  <td colspan="6">
+                    Select an event to view registered participants.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+</body>
+</html>
