@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>University Clubs — Eventra</title>
+  <meta name="description" content="Explore certified student societies and university clubs registered on Eventra.">
+</head>
+<body>
+
+  <!-- Dynamic Navigation Bar -->
+  <div id="navbar-container"></div>
+
+  <!-- Main Section -->
+  <main class="section">
+    <div class="container">
+      
+      <!-- Page Header -->
+      <div>
+        <div>
+          <div class="section-badge">Student Societies</div>
+          <h1>University Clubs</h1>
+          <p>
+            The central revolving orbit of student activities, competitions, networking, and leadership bodies.
+          </p>
+        </div>
+        <div>
+          <a href="auth.html?mode=club" class="btn btn-primary">
+            <span>Register Your Club</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- Search & Filters -->
+      <div class="glass-card">
+        <div>
+          <div>
+            <input 
+              type="text" 
+              id="club-search-input" 
+              class="form-control" 
+              placeholder="Search club by name, keywords, or focus..."
+            >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          </div>
+
+          <div id="club-category-pills">
+            <button class="btn btn-sm btn-primary club-cat-btn" data-cat="">All Clubs</button>
+            <button class="btn btn-sm btn-glass club-cat-btn" data-cat="Technology">Technology</button>
+            <button class="btn btn-sm btn-glass club-cat-btn" data-cat="Cultural">Cultural</button>
+            <button class="btn btn-sm btn-glass club-cat-btn" data-cat="Sports">Sports</button>
+            <button class="btn btn-sm btn-glass club-cat-btn" data-cat="Academic">Academic</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Clubs Grid -->
+      <div id="clubs-grid">
+        <div>
+          <p>Discovering university clubs...</p>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Global Footer -->
+  <footer class="footer">
+    <div class="container footer-bottom">
+      <div>&copy; 2026 Eventra. All rights reserved.</div>
+      <div>
+        <a href="index.html">Home</a>
+        <a href="events.html">Events</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
