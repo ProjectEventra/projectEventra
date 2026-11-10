@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Event Details — Eventra</title>
+  <meta name="description" content="View event schedule, registration requirements, and reserve your spot on Eventra.">
+</head>
+<body>
+
+  <!-- Dynamic Navigation Bar -->
+  <div id="navbar-container"></div>
+
+  <!-- Main Container -->
+  <main class="section">
+    <div class="container">
+      
+      <!-- Back Navigation -->
+      <div>
+        <a href="events.html" class="btn btn-sm btn-glass">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"></path><polyline points="12 19 5 12 12 5"></polyline></svg>
+          <span>Back to All Events</span>
+        </a>
+      </div>
+
+      <!-- Loading Placeholder -->
+      <div id="event-loading">
+        <p>Loading event details...</p>
+      </div>
+
+      <!-- Main Event Content (Initially Hidden) -->
+      <div id="event-content">
+        
+        <!-- Hero Banner -->
+        <div>
+          <img id="detail-banner" src="" alt="Event Banner">
+          
+          <div>
+            <div>
+              <div>
+                <span id="detail-category-badge" class="badge badge-purple">Category</span>
+                <span id="detail-type-badge" class="badge badge-cyan">Individual</span>
+                <span id="detail-status-badge" class="badge badge-emerald">Open</span>
+              </div>
+              <h1 id="detail-title">Event Title</h1>
+              <div id="detail-club-name">Host Club</div>
+            </div>
+
+            <!-- Spots Counter -->
+            <div class="glass-card">
+              <div>
+                <span>Spots Reserved</span>
+                <span id="detail-capacity-text">0 / 0</span>
+              </div>
+              <div>
+                <div id="detail-capacity-bar"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Two Column Layout -->
+        <div>
+          
+          <!-- Left Column: Details & Description -->
+          <div>
+            <!-- Countdown Ticker Box -->
+            <div class="glass-card">
+              <div>
+                <div>
+                  <div>Registration Closes In</div>
+                  <div id="detail-countdown">
+                    Calculating...
+                  </div>
+                </div>
+                <div id="detail-deadline-date">
+                  Deadline: <br><strong id="detail-deadline-str">-</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- Description -->
+            <div class="glass-card">
+              <h3>About This Event</h3>
+              <div id="detail-description">
+                Event description here...
+              </div>
+            </div>
+
+            <!-- Event Schedule & Venue -->
+            <div class="glass-card">
+              <h3>Time &amp; Location</h3>
+              <div>
+                <div>
+                  <div>Start Date &amp; Time</div>
+                  <div id="detail-start-time">-</div>
+                </div>
+                <div>
+                  <div>End Date &amp; Time</div>
+                  <div id="detail-end-time">-</div>
+                </div>
+                <div>
+                  <div>Venue</div>
+                  <div id="detail-venue">-</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Registration Card -->
+          <div id="register">
+            <div class="glass-card">
+              <h3 id="reg-card-title">Event Registration</h3>
+              <p id="reg-card-desc">
+                Secure your participant pass for this event.
+              </p>
+
+              <!-- State A: Already Registered -->
+              <div id="reg-state-registered">
+                <div>
+                  ✓
+                </div>
+                <h4>You Are Registered!</h4>
+                <p>
+                  Your pass has been generated. View your digital ticket and QR code in your student portal.
+                </p>
+                <a href="dashboard-student.html" class="btn btn-primary">Go to Student Portal</a>
+              </div>
+
+              <!-- State B: Deadline Passed -->
+              <div id="reg-state-expired">
+                <div>⏳</div>
+                <h4>Registration Closed</h4>
+                <p>
+                  The registration deadline for this event has elapsed. Stay tuned for future editions!
+                </p>
+              </div>
+
+              <!-- State C: Not Logged In -->
+              <div id="reg-state-guest">
+                <div>🎓</div>
+                <h4>Student Log In Required</h4>
+                <p>
+                  Please log in or sign up with your university student ID to register for this event.
+                </p>
+                <a href="auth.html?action=login&role=student" class="btn btn-primary">Log In as Student</a>
+                <a href="auth.html?action=signup&role=student" class="btn btn-glass">Sign Up as Student</a>
+              </div>
+
+              <!-- State D: Active Registration Form -->
+              <form id="reg-active-form">
+                
+                <!-- Dynamic Custom Fields Container -->
+                <div id="custom-fields-container"></div>
+
+                <!-- Group Registration Section (if type === 'group') -->
+                <div id="group-reg-section">
+                  <div class="form-group">
+                    <label class="form-label">Team Name <span class="required">*</span></label>
+                    <input type="text" id="reg-team-name" class="form-control" placeholder="e.g. CyberKnights">
+                  </div>
+
+                  <label class="form-label">Teammate Student IDs / Emails</label>
+                  <p class="form-hint">Add up to 4 teammate identifiers:</p>
+                  
+                  <div id="teammates-list">
+                    <input type="text" class="form-control teammate-input" placeholder="Teammate 1 (Student ID or Email)">
+                  </div>
+
+                  <button type="button" class="btn btn-sm btn-glass">+ Add Another Teammate</button>
+                </div>
+
+                <div>
+                  <button type="submit" class="btn btn-primary" id="reg-submit-btn">
+                    <span>Confirm Registration</span>
+                  </button>
+                  <p>
+                    By registering you agree to the university club event attendance guidelines.
+                  </p>
+                </div>
+              </form>
+
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Global Footer -->
+  <footer class="footer">
+    <div class="container footer-bottom">
+      <div>&copy; 2026 Eventra. All rights reserved.</div>
+      <div>
+        <a href="index.html">Home</a>
+        <a href="events.html">Events</a>
+        <a href="clubs.html">Clubs</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
