@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Super Admin Console — Eventra</title>
+  <meta name="description" content="Eventra central university administration console for club approvals, student management, and moderation.">
+</head>
+<body>
+
+  <!-- Dynamic Navigation Bar -->
+  <div id="navbar-container"></div>
+
+  <!-- Dashboard Layout -->
+  <div class="dashboard-layout">
+    
+    <!-- Sidebar -->
+    <aside class="dashboard-sidebar">
+      <div>
+        <div class="sidebar-profile">
+          <div class="sidebar-avatar">A</div>
+          <div>
+            <div class="sidebar-user-name">Super Admin</div>
+            <div class="sidebar-user-role">Campus Authority</div>
+          </div>
+        </div>
+
+        <ul class="sidebar-menu">
+          <li class="sidebar-item active" id="adm-menu-overview">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            <span>Overview &amp; Stats</span>
+          </li>
+          <li class="sidebar-item" id="adm-menu-clubs">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            <span>Club Approvals</span>
+          </li>
+          <li class="sidebar-item" id="adm-menu-students">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <span>Student Registry</span>
+          </li>
+          <li class="sidebar-item" id="adm-menu-events">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="18" y2="10"></line></svg>
+            <span>Campus Events</span>
+          </li>
+          <li class="sidebar-item" id="adm-menu-feedback">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            <span>Feedback Inbox</span>
+          </li>
+        </ul>
+      </div>
+
+      <div>
+        <button class="btn btn-sm btn-glass">
+          <span>Sign Out</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+      
+      <!-- 1. TAB: OVERVIEW & STATS -->
+      <section id="adm-tab-overview">
+        <div class="dashboard-header">
+          <div>
+            <h1 class="dashboard-title">University Overview</h1>
+            <p class="dashboard-subtitle">Real-time metrics on registered societies, students, and events.</p>
+          </div>
+          <button class="btn btn-sm btn-glass">↻ Refresh Metrics</button>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon-wrap stat-icon-cyan">🏛️</div>
+            <div>
+              <div class="stat-number" id="adm-stat-clubs">0</div>
+              <div class="stat-label">Active Clubs</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon-wrap stat-icon-purple">🎓</div>
+            <div>
+              <div class="stat-number" id="adm-stat-students">0</div>
+              <div class="stat-label">Enrolled Students</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon-wrap stat-icon-emerald">🎪</div>
+            <div>
+              <div class="stat-number" id="adm-stat-events">0</div>
+              <div class="stat-label">Campus Events</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon-wrap stat-icon-amber">🎟️</div>
+            <div>
+              <div class="stat-number" id="adm-stat-reg">0</div>
+              <div class="stat-label">Total Registrations</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Action Panels -->
+        <div>
+          <div class="glass-card">
+            <h3>Pending Club Applications</h3>
+            <p>
+              Review student society applications requiring administration certification.
+            </p>
+            <button class="btn btn-sm btn-primary">Manage Clubs Queue</button>
+          </div>
+
+          <div class="glass-card">
+            <h3>Recent Campus Feedback</h3>
+            <p>
+              Review student suggestions, bug reports, and incident complaints.
+            </p>
+            <button class="btn btn-sm btn-glass">View Feedback Inbox</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. TAB: CLUBS MANAGEMENT & APPROVALS -->
+      <section id="adm-tab-clubs">
+        <div class="dashboard-header">
+          <div>
+            <h1 class="dashboard-title">Club Approvals &amp; Governance</h1>
+            <p class="dashboard-subtitle">Authorize student clubs to create events and represent campus faculties.</p>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Club Name</th>
+                  <th>Category</th>
+                  <th>Contact Email</th>
+                  <th>Status</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="adm-clubs-tbody">
+                <tr><td colspan="6">Loading clubs...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. TAB: STUDENT REGISTRY -->
+      <section id="adm-tab-students">
+        <div class="dashboard-header">
+          <div>
+            <h1 class="dashboard-title">Student Directory</h1>
+            <p class="dashboard-subtitle">Search registered students and examine their active event passes.</p>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Student ID</th>
+                  <th>Department</th>
+                  <th>Email</th>
+                  <th>Enrolled</th>
+                </tr>
+              </thead>
+              <tbody id="adm-students-tbody">
+                <tr><td colspan="5">Loading students...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. TAB: CAMPUS EVENTS MODERATION -->
+      <section id="adm-tab-events">
+        <div class="dashboard-header">
+          <div>
+            <h1 class="dashboard-title">Global Campus Events</h1>
+            <p class="dashboard-subtitle">Supervise all scheduled events across every student organization.</p>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Event Title</th>
+                  <th>Host Club</th>
+                  <th>Category</th>
+                  <th>Schedule</th>
+                  <th>Registrations</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="adm-events-tbody">
+                <tr><td colspan="6">Loading events...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. TAB: FEEDBACK INBOX -->
+      <section id="adm-tab-feedback">
+        <div class="dashboard-header">
+          <div>
+            <h1 class="dashboard-title">Feedback &amp; Incident Inbox</h1>
+            <p class="dashboard-subtitle">Review feedback, suggestions, and reports submitted by students.</p>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Category</th>
+                  <th>Rating</th>
+                  <th>Message</th>
+                  <th>User / Email</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="adm-feedback-tbody">
+                <tr><td colspan="6">Loading feedback...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+</body>
+</html>
