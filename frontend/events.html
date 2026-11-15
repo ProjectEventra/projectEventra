@@ -85,10 +85,97 @@
       <div style="display:flex; gap:1.5rem;">
         <a href="index.html">Home</a>
         <a href="clubs.html">Clubs</a>
-        <a href="javascript:void(0)">Feedback</a>
+        <a href="javascript:void(0)" onclick="openFeedbackModal()">Feedback</a>
       </div>
     </div>
   </footer>
 
+  <!-- Scripts -->
+  <script src="js/api.js"></script>
+  <script src="js/navbar.js"></script>
+  <script src="js/events.js"></script>
+  <script src="js/feedback.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      let currentSearch = '';
+      let currentCategory = '';
+
+      // Check URL params for category
+      const params = new URLSearchParams(window.location.search);
+      const catParam = params.get('cat');
+      if (catParam) {
+        if (catParam === 'tech') currentCategory = 'Technology';
+        else if (catParam === 'cultural') currentCategory = 'Cultural';
+        else if (catParam === 'sports') currentCategory = 'Sports';
+        else if (catParam === 'academic') currentCategory = 'Academic';
+        else currentCategory = catParam;
+      }
+
+      function refreshEvents() {
+        loadEventsCatalog({
+          containerId: 'all-events-grid',
+          search: currentSearch,
+          category: currentCategory,
+          limit: 24
+        });
+      }
+
+      // Initial load
+      refreshEvents();
+      loadTimeline('full-events-timeline');
+
+      // Search input handler with debounce
+      let searchTimeout;
+      const searchInput = document.getElementById('event-search-input');
+      searchInput.addEventListener('input', (e) => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+          currentSearch = e.target.value.trim();
+          refreshEvents();
+        }, 350);
+      });
+
+      // Category filter buttons
+      const catBtns = document.querySelectorAll('.cat-filter-btn');
+      catBtns.forEach(btn => {
+        const cat = btn.getAttribute('data-category');
+        if (cat === currentCategory) {
+          catBtns.forEach(b => b.className = 'btn btn-sm btn-glass cat-filter-btn');
+          btn.className = 'btn btn-sm btn-primary cat-filter-btn';
+        }
+
+        btn.addEventListener('click', () => {
+          catBtns.forEach(b => b.className = 'btn btn-sm btn-glass cat-filter-btn');
+          btn.className = 'btn btn-sm btn-primary cat-filter-btn';
+          currentCategory = cat;
+          refreshEvents();
+        });
+      });
+
+      // View switcher
+      const gridView = document.getElementById('events-grid-view');
+      const timelineView = document.getElementById('events-timeline-view');
+      const gridBtn = document.getElementById('view-grid-btn');
+      const timelineBtn = document.getElementById('view-timeline-btn');
+
+      gridBtn.addEventListener('click', () => {
+        gridView.style.display = 'block';
+        timelineView.style.display = 'none';
+        gridBtn.style.background = 'rgba(255, 255, 255, 0.1)';
+        timelineBtn.style.background = 'transparent';
+      });
+
+      timelineBtn.addEventListener('click', () => {
+        gridView.style.display = 'none';
+        timelineView.style.display = 'block';
+        timelineBtn.style.background = 'rgba(255, 255, 255, 0.1)';
+        gridBtn.style.background = 'transparent';
+      });
+
+      if (window.location.hash === '#timeline') {
+        timelineBtn.click();
+      }
+    });
+  </script>
 </body>
 </html>

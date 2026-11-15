@@ -72,37 +72,37 @@
           <div class="orbit-ring ring-3"></div>
 
           <!-- Central Radiant Platform Core -->
-          <div class="orbit-core">
+          <div class="orbit-core" onclick="window.location.href='events.html'">
             <div class="core-title">EVENTRA</div>
           </div>
 
           <!-- Orbiting Satellites (Club Spheres & Registration) -->
-          <div class="orbit-satellite" style="top: 10%; left: 5%;">
+          <div class="orbit-satellite" style="top: 10%; left: 5%;" onclick="window.location.href='events.html?cat=tech'">
             <div class="sat-icon">🤖</div>
             <span>Tech &amp; AI</span>
           </div>
 
-          <div class="orbit-satellite" style="bottom: 18%; left: 4%;">
+          <div class="orbit-satellite" style="bottom: 18%; left: 4%;" onclick="window.location.href='events.html?cat=cultural'">
             <div class="sat-icon">🎭</div>
             <span>Arts &amp; Culture</span>
           </div>
 
-          <div class="orbit-satellite" style="top: 22%; right: 2%;">
+          <div class="orbit-satellite" style="top: 22%; right: 2%;" onclick="window.location.href='events.html?cat=tech'">
             <div class="sat-icon">⚡</div>
             <span>Engineering</span>
           </div>
 
-          <div class="orbit-satellite" style="bottom: 24%; right: 3%;">
+          <div class="orbit-satellite" style="bottom: 24%; right: 3%;" onclick="window.location.href='events.html?cat=sports'">
             <div class="sat-icon">🏆</div>
             <span>Athletics &amp; Sports</span>
           </div>
 
-          <div class="orbit-satellite" style="top: 2%; right: 25%;">
+          <div class="orbit-satellite" style="top: 2%; right: 25%;" onclick="window.location.href='events.html?cat=academic'">
             <div class="sat-icon">💼</div>
             <span>Debate &amp; Leadership</span>
           </div>
 
-          <div class="orbit-satellite" style="bottom: 2%; left: 28%;">
+          <div class="orbit-satellite" style="bottom: 2%; left: 28%;" onclick="window.location.href='auth.html?mode=club'">
             <div class="sat-icon">➕</div>
             <span>Register Your Club</span>
           </div>
@@ -249,7 +249,7 @@
             <li><a href="auth.html?mode=club">Club Affiliation</a></li>
             <li><a href="dashboard-club.html">Club Portal</a></li>
             <li><a href="dashboard-admin.html">Super Admin Console</a></li>
-            <li><a href="javascript:void(0)">Campus Feedback</a></li>
+            <li><a href="javascript:void(0)" onclick="openFeedbackModal()">Campus Feedback</a></li>
           </ul>
         </div>
 
@@ -267,7 +267,7 @@
       <div class="footer-bottom">
         <div>&copy; 2026 Eventra. Built with Go, PostgreSQL, and Modern Web Standards. All rights reserved.</div>
         <div style="display:flex; gap:1.5rem;">
-          <a href="javascript:void(0)">Report Issue</a>
+          <a href="javascript:void(0)" onclick="openFeedbackModal()">Report Issue</a>
           <a href="javascript:void(0)">Privacy Policy</a>
           <a href="javascript:void(0)">Terms of Service</a>
         </div>
@@ -275,5 +275,35 @@
     </div>
   </footer>
 
+  <!-- Scripts -->
+  <script src="js/api.js"></script>
+  <script src="js/navbar.js"></script>
+  <script src="js/events.js"></script>
+  <script src="js/feedback.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Load real-time platform statistics
+      try {
+        const statsRes = await window.api.get('/stats');
+        if (statsRes && statsRes.data) {
+          const stats = statsRes.data;
+          document.getElementById('stat-clubs-hero').innerText = stats.total_clubs ?? 0;
+          document.getElementById('stat-events-hero').innerText = stats.total_events ?? 0;
+          document.getElementById('stat-students-hero').innerText = stats.total_students ?? stats.total_registrations ?? 0;
+        }
+      } catch (e) {
+        // Fallback to 0
+      }
+
+      // Load featured events on homepage
+      loadEventsCatalog({
+        containerId: 'featured-events-grid',
+        limit: 6
+      });
+
+      // Load interactive timeline
+      loadTimeline('homepage-timeline');
+    });
+  </script>
 </body>
 </html>
