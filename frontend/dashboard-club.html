@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -363,6 +363,216 @@
           return;
         }
 
-  </div>
+        tbody.innerHTML = clubEvents.map(ev => {
+          const isExpired = new Date(ev.registration_deadline) <= new Date();
+          const startDate = new Date(ev.start_time).toLocaleDateString('en-US', { month:'short', day:'numeric' });
+          const deadlineDate = new Date(ev.registration_deadline).toLocaleDateString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+          
+          return `
+            <tr>
+              <td>
+                <div style="font-weight:700; color:var(--text-main);">${escapeHtml(ev.title)}</div>
+                <div style="font-size:0.78rem; color:var(--text-dim);">${escapeHtml(ev.venue || 'Campus')}</div>
+              </td>
+              <td><span class="badge badge-purple">${escapeHtml(ev.category || 'General')}</span></td>
+              <td>${startDate}</td>
+              <td>
+                <div style="color:${isExpired ? 'var(--accent-rose)' : 'var(--accent-cyan)'}; font-size:0.85rem; font-family:var(--font-mono);">
+                  ${deadlineDate}
+                </div>
+                ${isExpired ? '<span class="badge badge-rose" style="margin-top:0.2rem;">Expired</span>' : ''}
+              </td>
+              <td>
+                <strong>${ev.current_registrations || 0}</strong> / ${ev.max_capacity || 100}
+              </td>
+              <td>
+                <div class="action-buttons">
+                  <button class="btn btn-sm btn-glass" onclick="openDeadlineModal('${ev.id}', '${ev.registration_deadline}')" title="Extend Deadline">
+                    ⏳ Extend
+                  </button>
+                  <button class="btn btn-sm btn-glass" onclick="viewEventRoster('${ev.id}')" title="View Attendee Roster">
+                    👥 Roster
+                  </button>
+                  <button class="btn btn-sm btn-danger" onclick="deleteEvent('${ev.id}')" title="Delete Event">
+                    ✕
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } catch (err) {
+        tbody.innerHTML = `
+          <tr><td colspan="6" style="text-align:center; color:var(--accent-rose); padding:2rem;">
+            Failed to load events: ${err.message}
+          </td></tr>
+        `;
+      }
+    }
+
+    function switchClubTab(tab) {
+      document.getElementById('tab-events-view').style.display = tab === 'events' ? 'block' : 'none';
+      document.getElementById('tab-create-view').style.display = tab === 'create' ? 'block' : 'none';
+      document.getElementById('tab-roster-view').style.display = tab === 'roster' ? 'block' : 'none';
+
+      document.getElementById('menu-events').className = `sidebar-item ${tab === 'events' ? 'active' : ''}`;
+      document.getElementById('menu-create').className = `sidebar-item ${tab === 'create' ? 'active' : ''}`;
+      document.getElementById('menu-roster').className = `sidebar-item ${tab === 'roster' ? 'active' : ''}`;
+    }
+
+    function addCustomFieldRow() {
+      const container = document.getElementById('custom-fields-rows');
+      const row = document.createElement('div');
+      row.className = 'field-item-row';
+      row.innerHTML = `
+        <input type="text" class="form-control cf-label" placeholder="Question Title (e.g. GitHub URL, T-Shirt Size)">
+        <select class="form-control cf-type">
+          <option value="text">Text Answer</option>
+          <option value="number">Numeric</option>
+          <option value="email">Email</option>
+        </select>
+        <label style="display:flex; align-items:center; gap:0.4rem; font-size:0.85rem; cursor:pointer;">
+          <input type="checkbox" class="cf-required"> Required
+        </label>
+        <button type="button" class="btn btn-sm btn-danger" onclick="this.parentElement.remove()">✕</button>
+      `;
+      container.appendChild(row);
+    }
+
+    async function handleCreateEventSubmit(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btn-create-submit');
+      btn.disabled = true;
+      btn.innerText = 'Publishing Event...';
+
+      // Gather custom fields
+      const customFields = [];
+      document.querySelectorAll('.field-item-row').forEach(row => {
+        const label = row.querySelector('.cf-label').value.trim();
+        const type = row.querySelector('.cf-type').value;
+        const required = row.querySelector('.cf-required').checked;
+        if (label) {
+          customFields.push({
+            name: label.toLowerCase().replace(/[^a-z0-9]/g, '_'),
+            label: label,
+            type: type,
+            required: required
+          });
+        }
+      });
+
+      const payload = {
+        title: document.getElementById('ev-title').value.trim(),
+        category: document.getElementById('ev-category').value,
+        venue: document.getElementById('ev-venue').value.trim(),
+        description: document.getElementById('ev-description').value.trim(),
+        banner_url: document.getElementById('ev-banner').value.trim() || undefined,
+        start_time: new Date(document.getElementById('ev-start').value).toISOString(),
+        end_time: new Date(document.getElementById('ev-end').value).toISOString(),
+        registration_deadline: new Date(document.getElementById('ev-deadline').value).toISOString(),
+        max_capacity: parseInt(document.getElementById('ev-capacity').value) || 100,
+        registration_type: document.getElementById('ev-reg-type').value,
+        custom_fields: customFields
+      };
+
+      try {
+        await window.api.post('/club-admin/events', payload);
+        window.showToast('Event published successfully!', 'success');
+        document.getElementById('create-event-form').reset();
+        document.getElementById('custom-fields-rows').innerHTML = '';
+        switchClubTab('events');
+        await loadClubEvents();
+      } catch (err) {
+        window.showToast(err.message || 'Failed to create event', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>Publish Event</span>';
+      }
+    }
+
+    function openDeadlineModal(eventId, currentDeadline) {
+      document.getElementById('extend-event-id').value = eventId;
+      document.getElementById('extend-new-deadline').value = '';
+      document.getElementById('extend-reason').value = '';
+      document.getElementById('deadline-modal').classList.add('active');
+    }
+
+    function closeDeadlineModal() {
+      document.getElementById('deadline-modal').classList.remove('active');
+    }
+
+    async function handleDeadlineSubmit(e) {
+      e.preventDefault();
+      const eventId = document.getElementById('extend-event-id').value;
+      const newDeadline = new Date(document.getElementById('extend-new-deadline').value).toISOString();
+      const reason = document.getElementById('extend-reason').value.trim();
+
+      const btn = document.getElementById('btn-extend-submit');
+      btn.disabled = true;
+      btn.innerText = 'Extending...';
+
+      try {
+        await window.api.post(`/club-admin/events/${eventId}/extend-deadline`, {
+          new_deadline: newDeadline,
+          reason: reason
+        });
+        window.showToast('Deadline extended successfully!', 'success');
+        closeDeadlineModal();
+        await loadClubEvents();
+      } catch (err) {
+        window.showToast(err.message || 'Failed to extend deadline', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Confirm Extension';
+      }
+    }
+
+    function viewEventRoster(eventId) {
+      switchClubTab('roster');
+      const select = document.getElementById('roster-event-select');
+      select.value = eventId;
+      loadEventRoster(eventId);
+    }
+
+    async function loadEventRoster(eventId) {
+      if (!eventId) return;
+      const tbody = document.getElementById('roster-tbody');
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:2rem;">Loading roster...</td></tr>';
+
+      try {
+        const res = await window.api.get(`/club-admin/events/${eventId}/registrations`);
+        const list = res.data?.items || res.data || [];
+
+        if (list.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:3rem; color:var(--text-muted);">No students have registered yet.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = list.map(item => `
+          <tr>
+            <td><strong>${escapeHtml(item.student_name || item.name || 'Student')}</strong></td>
+            <td>${escapeHtml(item.student_id || '-')}</td>
+            <td>${escapeHtml(item.email || '-')}</td>
+            <td>${escapeHtml(item.team_name || 'Individual')}</td>
+            <td><span class="badge badge-emerald">${escapeHtml(item.status || 'Confirmed')}</span></td>
+            <td>${new Date(item.created_at).toLocaleDateString('en-US')}</td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--accent-rose); padding:2rem;">Failed to load roster: ${err.message}</td></tr>`;
+      }
+    }
+
+    async function deleteEvent(eventId) {
+      if (!confirm('Are you sure you want to cancel and delete this event? This action cannot be undone.')) return;
+      try {
+        await window.api.delete(`/club-admin/events/${eventId}`);
+        window.showToast('Event removed', 'info');
+        await loadClubEvents();
+      } catch (err) {
+        window.showToast(err.message || 'Failed to delete event', 'error');
+      }
+    }
+  </script>
 </body>
 </html>
