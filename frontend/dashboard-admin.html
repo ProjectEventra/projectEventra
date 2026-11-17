@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -245,6 +245,243 @@
     </main>
   </div>
 
-  </div>
+  <!-- Scripts -->
+  <script src="js/api.js"></script>
+  <script src="js/navbar.js"></script>
+  <script src="js/feedback.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const user = window.api.getUser();
+      if (!user) {
+        window.location.href = 'auth.html?mode=login';
+        return;
+      }
+
+      if (user.role !== 'super_admin') {
+        window.showToast('Super Admin authorization required', 'error');
+        window.location.href = 'index.html';
+        return;
+      }
+
+      await loadAdminStats();
+      await loadAdminClubs();
+    });
+
+    function switchAdminTab(tab) {
+      const tabs = ['overview', 'clubs', 'students', 'events', 'feedback'];
+      tabs.forEach(t => {
+        const view = document.getElementById(`adm-tab-${t}`);
+        const menu = document.getElementById(`adm-menu-${t}`);
+        if (view) view.style.display = t === tab ? 'block' : 'none';
+        if (menu) menu.className = `sidebar-item ${t === tab ? 'active' : ''}`;
+      });
+
+      if (tab === 'clubs') loadAdminClubs();
+      if (tab === 'students') loadAdminStudents();
+      if (tab === 'events') loadAdminEvents();
+      if (tab === 'feedback') loadAdminFeedback();
+    }
+
+    async function loadAdminStats() {
+      try {
+        const res = await window.api.get('/admin/stats');
+        const s = res.data || {};
+        document.getElementById('adm-stat-clubs').innerText = s.total_clubs || 0;
+        document.getElementById('adm-stat-students').innerText = s.total_students || 0;
+        document.getElementById('adm-stat-events').innerText = s.total_events || 0;
+        document.getElementById('adm-stat-reg').innerText = s.total_registrations || 0;
+      } catch (err) {
+        console.log('Stats notice:', err);
+      }
+    }
+
+    async function loadAdminClubs() {
+      const tbody = document.getElementById('adm-clubs-tbody');
+      try {
+        const res = await window.api.get('/admin/clubs');
+        const clubs = res.data?.items || res.data || [];
+
+        if (clubs.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:3rem; color:var(--text-muted);">No clubs found.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = clubs.map(club => {
+          const isApproved = club.is_approved || club.verification_status === 'approved';
+          const clubEmail = club.contact_email || club.email || '-';
+          const dateStr = club.created_at ? new Date(club.created_at).toLocaleDateString('en-US') : 'Recent';
+          return `
+            <tr>
+              <td><strong>${escapeHtml(club.name)}</strong></td>
+              <td><span class="badge badge-purple">${escapeHtml(club.category || 'General')}</span></td>
+              <td>${escapeHtml(clubEmail)}</td>
+              <td>
+                <span class="badge ${isApproved ? 'badge-emerald' : 'badge-amber'}">
+                  ${isApproved ? 'Approved ✓' : 'Pending Review'}
+                </span>
+              </td>
+              <td>${dateStr}</td>
+              <td>
+                <div class="action-buttons">
+                  ${!isApproved ? `
+                    <button class="btn btn-sm btn-success" onclick="approveClub('${club.id}')">Approve</button>
+                    <button class="btn btn-sm btn-danger" onclick="rejectClub('${club.id}')">Reject</button>
+                  ` : `
+                    <button class="btn btn-sm btn-danger" onclick="deleteClub('${club.id}')">Remove</button>
+                  `}
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--accent-rose); padding:2rem;">Failed to load clubs: ${err.message}</td></tr>`;
+      }
+    }
+
+    async function approveClub(id) {
+      try {
+        await window.api.post(`/admin/clubs/${id}/approve`, {});
+        window.showToast('Club application approved!', 'success');
+        await loadAdminClubs();
+      } catch (err) {
+        window.showToast(err.message || 'Approval failed', 'error');
+      }
+    }
+
+    async function rejectClub(id) {
+      const reason = prompt('Reason for rejecting club affiliation:');
+      if (!reason) return;
+      try {
+        await window.api.post(`/admin/clubs/${id}/reject`, { reason });
+        window.showToast('Club application rejected', 'info');
+        await loadAdminClubs();
+      } catch (err) {
+        window.showToast(err.message || 'Rejection failed', 'error');
+      }
+    }
+
+    async function deleteClub(id) {
+      if (!confirm('Are you sure you want to remove this club and its events?')) return;
+      try {
+        await window.api.delete(`/admin/clubs/${id}`);
+        window.showToast('Club removed', 'info');
+        await loadAdminClubs();
+      } catch (err) {
+        window.showToast(err.message || 'Failed to remove club', 'error');
+      }
+    }
+
+    async function loadAdminStudents() {
+      const tbody = document.getElementById('adm-students-tbody');
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:2rem;">Loading student registry...</td></tr>';
+      try {
+        const res = await window.api.get('/admin/students');
+        const students = res.data?.items || res.data || [];
+
+        if (students.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:3rem; color:var(--text-muted);">No students registered yet.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = students.map(st => `
+          <tr>
+            <td><strong>${escapeHtml(st.name || st.user_name || 'Student')}</strong></td>
+            <td><code style="color:var(--accent-cyan); font-family:var(--font-mono);">${escapeHtml(st.student_id || '-')}</code></td>
+            <td>${escapeHtml(st.department || '-')}</td>
+            <td>${escapeHtml(st.email || '-')}</td>
+            <td>${new Date(st.created_at).toLocaleDateString('en-US')}</td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--accent-rose); padding:2rem;">Failed to load students: ${err.message}</td></tr>`;
+      }
+    }
+
+    async function loadAdminEvents() {
+      const tbody = document.getElementById('adm-events-tbody');
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:2rem;">Loading events...</td></tr>';
+      try {
+        const res = await window.api.get('/admin/events');
+        const events = res.data?.items || res.data || [];
+
+        if (events.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:3rem; color:var(--text-muted);">No events published.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = events.map(ev => `
+          <tr>
+            <td>
+              <strong>${escapeHtml(ev.title)}</strong>
+              <div style="font-size:0.75rem; color:var(--text-dim);">${escapeHtml(ev.venue || 'Campus')}</div>
+            </td>
+            <td>${escapeHtml(ev.club_name || 'Club')}</td>
+            <td><span class="badge badge-purple">${escapeHtml(ev.category || 'General')}</span></td>
+            <td>${new Date(ev.start_time).toLocaleDateString('en-US')}</td>
+            <td>${ev.current_registrations || 0} / ${ev.max_capacity || 100}</td>
+            <td>
+              <button class="btn btn-sm btn-danger" onclick="deleteGlobalEvent('${ev.id}')">Delete</button>
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--accent-rose); padding:2rem;">Failed to load events: ${err.message}</td></tr>`;
+      }
+    }
+
+    async function deleteGlobalEvent(id) {
+      if (!confirm('Are you sure you want to permanently delete this event?')) return;
+      try {
+        await window.api.delete(`/admin/events/${id}`);
+        window.showToast('Event removed', 'info');
+        await loadAdminEvents();
+      } catch (err) {
+        window.showToast(err.message || 'Failed to delete event', 'error');
+      }
+    }
+
+    async function loadAdminFeedback() {
+      const tbody = document.getElementById('adm-feedback-tbody');
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:2rem;">Loading feedback inbox...</td></tr>';
+      try {
+        const res = await window.api.get('/admin/feedback');
+        const feedback = res.data?.items || res.data || [];
+
+        if (feedback.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:3rem; color:var(--text-muted);">Inbox is empty. No user feedback submitted.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = feedback.map(item => `
+          <tr>
+            <td><span class="badge badge-cyan">${escapeHtml(item.category || 'General')}</span></td>
+            <td>${'★'.repeat(item.rating || 5)}</td>
+            <td style="max-width:320px; line-height:1.5;">${escapeHtml(item.message)}</td>
+            <td>${escapeHtml(item.email || 'Anonymous')}</td>
+            <td><span class="badge ${item.status === 'resolved' ? 'badge-emerald' : 'badge-amber'}">${escapeHtml(item.status || 'Pending')}</span></td>
+            <td>
+              <div class="action-buttons">
+                <button class="btn btn-sm btn-success" onclick="updateFeedbackStatus('${item.id}', 'resolved')">Resolve</button>
+                <button class="btn btn-sm btn-glass" onclick="updateFeedbackStatus('${item.id}', 'reviewed')">Reviewed</button>
+              </div>
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--accent-rose); padding:2rem;">Failed to load feedback: ${err.message}</td></tr>`;
+      }
+    }
+
+    async function updateFeedbackStatus(id, status) {
+      try {
+        await window.api.patch(`/admin/feedback/${id}`, { status });
+        window.showToast(`Feedback marked as ${status}`, 'success');
+        await loadAdminFeedback();
+      } catch (err) {
+        window.showToast(err.message || 'Failed to update feedback status', 'error');
+      }
+    }
+  </script>
 </body>
 </html>
