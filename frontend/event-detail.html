@@ -152,7 +152,7 @@
               </div>
 
               <!-- State D: Active Registration Form -->
-              <form id="reg-active-form" style="display: none;">
+              <form id="reg-active-form" style="display: none;" onsubmit="handleRegistrationSubmit(event)">
                 
                 <!-- Dynamic Custom Fields Container -->
                 <div id="custom-fields-container"></div>
@@ -171,7 +171,7 @@
                     <input type="text" class="form-control teammate-input" placeholder="Teammate 1 (Student ID or Email)">
                   </div>
 
-                  <button type="button" class="btn btn-sm btn-glass">+ Add Another Teammate</button>
+                  <button type="button" class="btn btn-sm btn-glass" onclick="addTeammateField()">+ Add Another Teammate</button>
                 </div>
 
                 <div style="margin-top: 1.5rem;">
@@ -201,10 +201,242 @@
       <div style="display:flex; gap:1.5rem;">
         <a href="index.html">Home</a>
         <a href="events.html">Events</a>
-        <a href="javascript:void(0)">Feedback</a>
+        <a href="javascript:void(0)" onclick="openFeedbackModal()">Feedback</a>
       </div>
     </div>
   </footer>
 
+  <!-- Scripts -->
+  <script src="js/api.js"></script>
+  <script src="js/navbar.js"></script>
+  <script src="js/feedback.js"></script>
+  <script>
+    let currentEvent = null;
+    let countdownInterval = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const params = new URLSearchParams(window.location.search);
+      const eventId = params.get('id');
+
+      if (!eventId) {
+        window.location.href = 'events.html';
+        return;
+      }
+
+      await loadEventDetail(eventId);
+    });
+
+    async function loadEventDetail(eventId) {
+      try {
+        const res = await window.api.get(`/events/${eventId}`);
+        currentEvent = res.data;
+
+        if (!currentEvent) {
+          throw new Error('Event not found');
+        }
+
+        renderEvent();
+      } catch (err) {
+        document.getElementById('event-loading').innerHTML = `
+          <div class="glass-card" style="max-width: 500px; margin: 0 auto; padding: 2.5rem; text-align: center;">
+            <p style="color: var(--accent-rose); margin-bottom: 1.5rem;">${err.message || 'Unable to load event.'}</p>
+            <a href="events.html" class="btn btn-glass">Back to Events</a>
+          </div>
+        `;
+      }
+    }
+
+    function renderEvent() {
+      document.getElementById('event-loading').style.display = 'none';
+      document.getElementById('event-content').style.display = 'block';
+
+      // Set Title & Banner
+      const title = currentEvent.title || currentEvent.name || 'Campus Event';
+      const participationType = currentEvent.registration_type || currentEvent.participation_type || 'individual';
+      document.title = `${title} — Eventra`;
+      document.getElementById('detail-title').innerText = title;
+      document.getElementById('detail-club-name').innerText = currentEvent.club_name || 'University Club';
+      document.getElementById('detail-category-badge').innerText = currentEvent.category || 'General';
+      document.getElementById('detail-type-badge').innerText = participationType === 'group' ? 'Team Event' : 'Individual';
+      
+      const defaultBanner = 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&auto=format&fit=crop&q=80';
+      document.getElementById('detail-banner').src = currentEvent.banner_url || defaultBanner;
+
+      // Description & Details
+      document.getElementById('detail-description').innerText = currentEvent.description || currentEvent.short_description || 'No description provided.';
+      document.getElementById('detail-venue').innerText = currentEvent.venue || 'Campus Auditorium';
+
+      const rawStart = currentEvent.start_time || currentEvent.event_date || new Date();
+      const rawEnd = currentEvent.end_time || currentEvent.event_date || new Date();
+      const startDate = new Date(rawStart);
+      const endDate = new Date(rawEnd);
+      document.getElementById('detail-start-time').innerText = startDate.toLocaleString('en-US', {
+        weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
+      });
+      document.getElementById('detail-end-time').innerText = endDate.toLocaleString('en-US', {
+        weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
+      });
+
+      // Deadline String
+      const deadline = new Date(currentEvent.registration_deadline || new Date());
+      document.getElementById('detail-deadline-str').innerText = deadline.toLocaleString('en-US', {
+        month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
+      });
+
+      // Capacity Bar
+      const capacity = currentEvent.max_capacity || currentEvent.max_participants || 100;
+      const current = currentEvent.current_registrations || currentEvent.registration_count || 0;
+      const pct = Math.min(100, Math.round((current / capacity) * 100));
+      document.getElementById('detail-capacity-text').innerText = `${current} / ${capacity} (${pct}%)`;
+      document.getElementById('detail-capacity-bar').style.width = `${pct}%`;
+
+      // Setup Live Countdown
+      updateCountdown(deadline);
+      countdownInterval = setInterval(() => updateCountdown(deadline), 1000);
+
+      // Determine Registration Card State
+      setupRegistrationCard();
+    }
+
+    function updateCountdown(deadline) {
+      const ticker = document.getElementById('detail-countdown');
+      const now = new Date().getTime();
+      const distance = deadline.getTime() - now;
+
+      if (distance <= 0) {
+        ticker.innerText = 'Registration Closed';
+        ticker.style.color = 'var(--accent-rose)';
+        clearInterval(countdownInterval);
+        return;
+      }
+
+      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+      ticker.innerText = `${days}d : ${hours}h : ${minutes}m : ${seconds}s`;
+    }
+
+    function setupRegistrationCard() {
+      const user = window.api.getUser();
+      const isExpired = new Date(currentEvent.registration_deadline) <= new Date();
+
+      const registeredBox = document.getElementById('reg-state-registered');
+      const expiredBox = document.getElementById('reg-state-expired');
+      const guestBox = document.getElementById('reg-state-guest');
+      const activeForm = document.getElementById('reg-active-form');
+
+      registeredBox.style.display = 'none';
+      expiredBox.style.display = 'none';
+      guestBox.style.display = 'none';
+      activeForm.style.display = 'none';
+
+      if (currentEvent.is_registered) {
+        registeredBox.style.display = 'block';
+        return;
+      }
+
+      if (isExpired) {
+        expiredBox.style.display = 'block';
+        return;
+      }
+
+      if (!user) {
+        guestBox.style.display = 'block';
+        return;
+      }
+
+      // User is logged in and registration is open!
+      activeForm.style.display = 'block';
+
+      // Setup Custom Fields
+      const fieldsContainer = document.getElementById('custom-fields-container');
+      fieldsContainer.innerHTML = '';
+      if (Array.isArray(currentEvent.custom_fields) && currentEvent.custom_fields.length > 0) {
+        currentEvent.custom_fields.forEach(field => {
+          const div = document.createElement('div');
+          div.className = 'form-group';
+          div.innerHTML = `
+            <label class="form-label">${escapeHtml(field.label || field.name)} ${field.required ? '<span class="required">*</span>' : ''}</label>
+            <input type="${field.type || 'text'}" class="form-control custom-field-input" data-field-name="${escapeHtml(field.name)}" placeholder="${escapeHtml(field.placeholder || '')}" ${field.required ? 'required' : ''}>
+          `;
+          fieldsContainer.appendChild(div);
+        });
+      }
+
+      // Setup Group vs Individual
+      const groupSection = document.getElementById('group-reg-section');
+      if (currentEvent.registration_type === 'group') {
+        groupSection.style.display = 'block';
+      } else {
+        groupSection.style.display = 'none';
+      }
+    }
+
+    function addTeammateField() {
+      const list = document.getElementById('teammates-list');
+      const count = list.querySelectorAll('.teammate-input').length + 1;
+      if (count > 5) {
+        window.showToast('Maximum 5 teammates allowed', 'info');
+        return;
+      }
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'form-control teammate-input';
+      input.placeholder = `Teammate ${count} (Student ID or Email)`;
+      list.appendChild(input);
+    }
+
+    async function handleRegistrationSubmit(e) {
+      e.preventDefault();
+      const submitBtn = document.getElementById('reg-submit-btn');
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'Registering...';
+
+      // Gather custom fields
+      const customData = {};
+      const inputs = document.querySelectorAll('.custom-field-input');
+      inputs.forEach(inp => {
+        const name = inp.getAttribute('data-field-name');
+        customData[name] = inp.value.trim();
+      });
+
+      try {
+        if (currentEvent.registration_type === 'group') {
+          const teamName = document.getElementById('reg-team-name').value.trim();
+          if (!teamName) {
+            throw new Error('Please enter a team name');
+          }
+
+          const memberInputs = document.querySelectorAll('.teammate-input');
+          const members = [];
+          memberInputs.forEach(inp => {
+            const v = inp.value.trim();
+            if (v) members.push(v);
+          });
+
+          await window.api.post(`/events/${currentEvent.id}/register-group`, {
+            team_name: teamName,
+            members: members,
+            custom_data: customData
+          });
+        } else {
+          await window.api.post(`/events/${currentEvent.id}/register`, {
+            custom_data: customData
+          });
+        }
+
+        window.showToast('Registration successful! Your pass is confirmed.', 'success');
+        currentEvent.is_registered = true;
+        setupRegistrationCard();
+      } catch (err) {
+        window.showToast(err.message || 'Registration failed', 'error');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span>Confirm Registration</span>';
+      }
+    }
+  </script>
 </body>
 </html>

@@ -76,10 +76,113 @@
       <div style="display:flex; gap:1.5rem;">
         <a href="index.html">Home</a>
         <a href="events.html">Events</a>
-        <a href="javascript:void(0)">Feedback</a>
+        <a href="javascript:void(0)" onclick="openFeedbackModal()">Feedback</a>
       </div>
     </div>
   </footer>
 
+  <!-- Scripts -->
+  <script src="js/api.js"></script>
+  <script src="js/navbar.js"></script>
+  <script src="js/feedback.js"></script>
+  <script>
+    let allClubs = [];
+    let currentFilter = '';
+    let currentQuery = '';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await loadClubs();
+
+      // Search listener
+      const searchInput = document.getElementById('club-search-input');
+      searchInput.addEventListener('input', (e) => {
+        currentQuery = e.target.value.toLowerCase().trim();
+        renderClubs();
+      });
+
+      // Category buttons
+      const catBtns = document.querySelectorAll('.club-cat-btn');
+      catBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          catBtns.forEach(b => b.className = 'btn btn-sm btn-glass club-cat-btn');
+          btn.className = 'btn btn-sm btn-primary club-cat-btn';
+          currentFilter = btn.getAttribute('data-cat');
+          renderClubs();
+        });
+      });
+    });
+
+    async function loadClubs() {
+      const container = document.getElementById('clubs-grid');
+      try {
+        const res = await window.api.get('/clubs');
+        allClubs = res.data?.items || (Array.isArray(res.data) ? res.data : []);
+        renderClubs();
+      } catch (err) {
+        container.innerHTML = `
+          <div style="grid-column: 1 / -1; text-align: center; padding: 3rem 1rem;" class="glass-card">
+            <p style="color: var(--accent-rose); margin-bottom: 1rem;">Could not load clubs: ${err.message}</p>
+            <button class="btn btn-sm btn-glass" onclick="loadClubs()">Retry</button>
+          </div>
+        `;
+      }
+    }
+
+    function renderClubs() {
+      const container = document.getElementById('clubs-grid');
+      let filtered = allClubs.filter(club => {
+        const matchesCat = !currentFilter || 
+          (club.category && club.category.toLowerCase() === currentFilter.toLowerCase()) ||
+          (club.name && club.name.toLowerCase().includes(currentFilter.toLowerCase())) ||
+          (club.description && club.description.toLowerCase().includes(currentFilter.toLowerCase()));
+        const matchesQuery = !currentQuery || 
+          (club.name || '').toLowerCase().includes(currentQuery) || 
+          (club.description || '').toLowerCase().includes(currentQuery);
+        return matchesCat && matchesQuery;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 1rem;" class="glass-card">
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🏛️</div>
+            <h3 style="font-size: 1.3rem; margin-bottom: 0.5rem;">No clubs found</h3>
+            <p style="color: var(--text-muted); max-width: 400px; margin: 0 auto 1.5rem;">
+              No certified clubs match your filter criteria. Be the first to register a chapter!
+            </p>
+            <a href="auth.html?mode=club" class="btn btn-sm btn-primary">Register Your Club</a>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered.map(club => {
+        const logoUrl = club.logo_url || 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=400&auto=format&fit=crop&q=80';
+        return `
+          <div class="glass-card" style="display:flex; flex-direction:column; justify-content:space-between;">
+            <div>
+              <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1.25rem;">
+                <img src="${logoUrl}" alt="${escapeHtml(club.name)}" style="width:54px; height:54px; border-radius:var(--radius-md); object-fit:cover; border:1px solid var(--border-glass);">
+                <div>
+                  <h3 style="font-size:1.2rem; margin-bottom:0.25rem;">${escapeHtml(club.name)}</h3>
+                  <span class="badge badge-purple">${escapeHtml(club.category || 'General')}</span>
+                </div>
+              </div>
+
+              <p style="font-size:0.9rem; color:var(--text-muted); line-height:1.6; margin-bottom:1.5rem; min-height:4.2rem;">
+                ${escapeHtml(club.description || 'Dedicated to advancing student initiatives and fostering collaboration.')}
+              </p>
+            </div>
+
+            <div style="border-top:1px solid var(--border-subtle); padding-top:1rem; display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size:0.8rem; color:var(--text-dim);">
+                ✉️ ${escapeHtml(club.contact_email || club.email || 'info@university.edu')}
+              </span>
+              <a href="events.html?club=${club.id}" class="btn btn-sm btn-glass">Events</a>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  </script>
 </body>
 </html>
