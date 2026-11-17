@@ -1,10 +1,13 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Super Admin Console — Eventra</title>
   <meta name="description" content="Eventra central university administration console for club approvals, student management, and moderation.">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/dashboard.css">
 </head>
 <body>
 
@@ -18,31 +21,31 @@
     <aside class="dashboard-sidebar">
       <div>
         <div class="sidebar-profile">
-          <div class="sidebar-avatar">A</div>
+          <div class="sidebar-avatar" style="background:var(--grad-primary); color:#05140d;">A</div>
           <div>
             <div class="sidebar-user-name">Super Admin</div>
-            <div class="sidebar-user-role">Campus Authority</div>
+            <div class="sidebar-user-role" style="color:var(--accent-mint);">Campus Authority</div>
           </div>
         </div>
 
         <ul class="sidebar-menu">
-          <li class="sidebar-item active" id="adm-menu-overview">
+          <li class="sidebar-item active" id="adm-menu-overview" onclick="switchAdminTab('overview')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
             <span>Overview &amp; Stats</span>
           </li>
-          <li class="sidebar-item" id="adm-menu-clubs">
+          <li class="sidebar-item" id="adm-menu-clubs" onclick="switchAdminTab('clubs')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
             <span>Club Approvals</span>
           </li>
-          <li class="sidebar-item" id="adm-menu-students">
+          <li class="sidebar-item" id="adm-menu-students" onclick="switchAdminTab('students')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
             <span>Student Registry</span>
           </li>
-          <li class="sidebar-item" id="adm-menu-events">
+          <li class="sidebar-item" id="adm-menu-events" onclick="switchAdminTab('events')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="18" y2="10"></line></svg>
             <span>Campus Events</span>
           </li>
-          <li class="sidebar-item" id="adm-menu-feedback">
+          <li class="sidebar-item" id="adm-menu-feedback" onclick="switchAdminTab('feedback')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
             <span>Feedback Inbox</span>
           </li>
@@ -50,7 +53,7 @@
       </div>
 
       <div>
-        <button class="btn btn-sm btn-glass">
+        <button class="btn btn-sm btn-glass" onclick="handleLogout()" style="width: 100%;">
           <span>Sign Out</span>
         </button>
       </div>
@@ -66,7 +69,7 @@
             <h1 class="dashboard-title">University Overview</h1>
             <p class="dashboard-subtitle">Real-time metrics on registered societies, students, and events.</p>
           </div>
-          <button class="btn btn-sm btn-glass">↻ Refresh Metrics</button>
+          <button class="btn btn-sm btn-glass" onclick="loadAdminStats()">↻ Refresh Metrics</button>
         </div>
 
         <div class="stats-grid">
@@ -101,27 +104,27 @@
         </div>
 
         <!-- Quick Action Panels -->
-        <div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.75rem; margin-top:2rem;">
           <div class="glass-card">
-            <h3>Pending Club Applications</h3>
-            <p>
+            <h3 style="font-size:1.25rem; margin-bottom:0.75rem;">Pending Club Applications</h3>
+            <p style="font-size:0.9rem; color:var(--text-muted); margin-bottom:1.5rem;">
               Review student society applications requiring administration certification.
             </p>
-            <button class="btn btn-sm btn-primary">Manage Clubs Queue</button>
+            <button class="btn btn-sm btn-primary" onclick="switchAdminTab('clubs')">Manage Clubs Queue</button>
           </div>
 
           <div class="glass-card">
-            <h3>Recent Campus Feedback</h3>
-            <p>
+            <h3 style="font-size:1.25rem; margin-bottom:0.75rem;">Recent Campus Feedback</h3>
+            <p style="font-size:0.9rem; color:var(--text-muted); margin-bottom:1.5rem;">
               Review student suggestions, bug reports, and incident complaints.
             </p>
-            <button class="btn btn-sm btn-glass">View Feedback Inbox</button>
+            <button class="btn btn-sm btn-glass" onclick="switchAdminTab('feedback')">View Feedback Inbox</button>
           </div>
         </div>
       </section>
 
       <!-- 2. TAB: CLUBS MANAGEMENT & APPROVALS -->
-      <section id="adm-tab-clubs">
+      <section id="adm-tab-clubs" style="display: none;">
         <div class="dashboard-header">
           <div>
             <h1 class="dashboard-title">Club Approvals &amp; Governance</h1>
@@ -129,7 +132,7 @@
           </div>
         </div>
 
-        <div class="glass-card">
+        <div class="glass-card" style="padding: 1.5rem;">
           <div class="table-responsive">
             <table class="data-table">
               <thead>
@@ -143,7 +146,7 @@
                 </tr>
               </thead>
               <tbody id="adm-clubs-tbody">
-                <tr><td colspan="6">Loading clubs...</td></tr>
+                <tr><td colspan="6" style="text-align:center; padding:3rem; color:var(--text-muted);">Loading clubs...</td></tr>
               </tbody>
             </table>
           </div>
@@ -151,7 +154,7 @@
       </section>
 
       <!-- 3. TAB: STUDENT REGISTRY -->
-      <section id="adm-tab-students">
+      <section id="adm-tab-students" style="display: none;">
         <div class="dashboard-header">
           <div>
             <h1 class="dashboard-title">Student Directory</h1>
@@ -159,7 +162,7 @@
           </div>
         </div>
 
-        <div class="glass-card">
+        <div class="glass-card" style="padding: 1.5rem;">
           <div class="table-responsive">
             <table class="data-table">
               <thead>
@@ -172,7 +175,7 @@
                 </tr>
               </thead>
               <tbody id="adm-students-tbody">
-                <tr><td colspan="5">Loading students...</td></tr>
+                <tr><td colspan="5" style="text-align:center; padding:3rem; color:var(--text-muted);">Loading students...</td></tr>
               </tbody>
             </table>
           </div>
@@ -180,7 +183,7 @@
       </section>
 
       <!-- 4. TAB: CAMPUS EVENTS MODERATION -->
-      <section id="adm-tab-events">
+      <section id="adm-tab-events" style="display: none;">
         <div class="dashboard-header">
           <div>
             <h1 class="dashboard-title">Global Campus Events</h1>
@@ -188,7 +191,7 @@
           </div>
         </div>
 
-        <div class="glass-card">
+        <div class="glass-card" style="padding: 1.5rem;">
           <div class="table-responsive">
             <table class="data-table">
               <thead>
@@ -202,7 +205,7 @@
                 </tr>
               </thead>
               <tbody id="adm-events-tbody">
-                <tr><td colspan="6">Loading events...</td></tr>
+                <tr><td colspan="6" style="text-align:center; padding:3rem; color:var(--text-muted);">Loading events...</td></tr>
               </tbody>
             </table>
           </div>
@@ -210,7 +213,7 @@
       </section>
 
       <!-- 5. TAB: FEEDBACK INBOX -->
-      <section id="adm-tab-feedback">
+      <section id="adm-tab-feedback" style="display: none;">
         <div class="dashboard-header">
           <div>
             <h1 class="dashboard-title">Feedback &amp; Incident Inbox</h1>
@@ -218,7 +221,7 @@
           </div>
         </div>
 
-        <div class="glass-card">
+        <div class="glass-card" style="padding: 1.5rem;">
           <div class="table-responsive">
             <table class="data-table">
               <thead>
@@ -232,7 +235,7 @@
                 </tr>
               </thead>
               <tbody id="adm-feedback-tbody">
-                <tr><td colspan="6">Loading feedback...</td></tr>
+                <tr><td colspan="6" style="text-align:center; padding:3rem; color:var(--text-muted);">Loading feedback...</td></tr>
               </tbody>
             </table>
           </div>
@@ -242,5 +245,6 @@
     </main>
   </div>
 
+  </div>
 </body>
 </html>
