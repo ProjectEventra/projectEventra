@@ -1,10 +1,13 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Student Portal — Eventra</title>
   <meta name="description" content="View your registered events, event passes, and digital tickets on Eventra.">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/dashboard.css">
 </head>
 <body>
 
@@ -26,15 +29,15 @@
         </div>
 
         <ul class="sidebar-menu">
-          <li class="sidebar-item active">
+          <li class="sidebar-item active" onclick="switchStudentTab('tickets')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
             <span>My Event Passes</span>
           </li>
-          <li class="sidebar-item">
+          <li class="sidebar-item" onclick="window.location.href='events.html'">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
             <span>Browse Events</span>
           </li>
-          <li class="sidebar-item">
+          <li class="sidebar-item" onclick="openFeedbackModal()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
             <span>Campus Feedback</span>
           </li>
@@ -42,7 +45,7 @@
       </div>
 
       <div>
-        <button class="btn btn-sm btn-glass">
+        <button class="btn btn-sm btn-glass" onclick="handleLogout()" style="width: 100%;">
           <span>Sign Out</span>
         </button>
       </div>
@@ -94,12 +97,13 @@
       </div>
 
       <!-- Passes & Registrations Container -->
-      <div>
-        <h2>My Active Tickets</h2>
+      <div style="margin-top: 2rem;">
+        <h2 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 1.25rem;">My Active Tickets</h2>
         
         <div id="tickets-list">
-          <div>
-            <p>Retrieving your registration passes...</p>
+          <div style="text-align: center; padding: 4rem 0;">
+            <div style="width: 40px; height: 40px; border: 3px solid rgba(0, 242, 254, 0.2); border-top-color: var(--accent-cyan); border-radius: 50%; animation: rotateRing 1s linear infinite; margin: 0 auto 1rem;"></div>
+            <p style="color:var(--text-muted);">Retrieving your registration passes...</p>
           </div>
         </div>
       </div>
@@ -107,6 +111,6 @@
     </main>
 
   </div>
-
+  </div>
 </body>
 </html>
