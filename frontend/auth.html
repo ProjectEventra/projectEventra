@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -588,5 +588,660 @@
       </div>
     </div>
   </footer>
+
+  <!-- Core Scripts -->
+  <script src="js/api.js"></script>
+  <script src="js/navbar.js"></script>
+  <script src="js/feedback.js"></script>
+  <script>
+    // State
+    let currentView = 'landing'; // 'landing' | 'role' | 'form'
+    let currentFlow = 'signup';  // 'signup' | 'login'
+    let currentRole = 'student'; // 'student' | 'club' | 'super_admin'
+    let isSubmitting = false;
+
+    // Email validation regex
+    const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      handleURLParams();
+    });
+
+    function handleURLParams() {
+      const params = new URLSearchParams(window.location.search);
+      const action = params.get('action') || (params.get('mode') === 'register' ? 'signup' : params.get('mode') === 'login' ? 'login' : null);
+      const role = params.get('role');
+
+      if (action === 'signup' || action === 'login') {
+        if (role && ['student', 'club', 'super_admin'].includes(role)) {
+          openForm(action, role);
+        } else {
+          openRoleSelection(action);
+        }
+      } else {
+        openLanding();
+      }
+    }
+
+    // Navigation state handlers
+    function openLanding() {
+      currentView = 'landing';
+      clearAlert();
+      clearFieldErrors();
+      document.getElementById('view-landing').style.display = 'block';
+      document.getElementById('view-role-selection').style.display = 'none';
+      document.getElementById('view-form').style.display = 'none';
+      document.getElementById('auth-main-title').innerText = 'Eventra';
+      document.getElementById('auth-main-subtitle').innerText = 'University Club Event Management Platform';
+    }
+
+    function openRoleSelection(flow) {
+      currentView = 'role';
+      currentFlow = flow;
+      clearAlert();
+      clearFieldErrors();
+
+      document.getElementById('view-landing').style.display = 'none';
+      document.getElementById('view-role-selection').style.display = 'block';
+      document.getElementById('view-form').style.display = 'none';
+
+      const isSignup = flow === 'signup';
+      document.getElementById('role-view-heading').innerText = isSignup ? 'Sign Up for Eventra' : 'Log In to Eventra';
+      document.getElementById('role-view-desc').innerText = isSignup
+        ? 'Select your account type to proceed with registration:'
+        : 'Select your role to access your account:';
+
+      // Update role option labels
+      document.getElementById('role-label-student').innerText = isSignup ? 'Sign Up as a Student' : 'Log In as a Student';
+      document.getElementById('role-label-club').innerText = isSignup ? 'Sign Up as a Club Admin' : 'Log In as a Club Admin';
+      document.getElementById('role-label-super-admin').innerText = isSignup ? 'Sign Up as the Super Admin' : 'Log In as the Super Admin';
+    }
+
+    function selectRole(role) {
+      openForm(currentFlow, role);
+    }
+
+    function openForm(flow, role) {
+      currentView = 'form';
+      currentFlow = flow;
+      currentRole = role;
+      clearAlert();
+      clearFieldErrors();
+
+      document.getElementById('view-landing').style.display = 'none';
+      document.getElementById('view-role-selection').style.display = 'none';
+      document.getElementById('view-form').style.display = 'block';
+
+      // Hide all forms
+      const allForms = [
+        'form-signup-student',
+        'form-signup-club',
+        'form-signup-super-admin',
+        'form-login-student',
+        'form-login-club',
+        'form-login-super-admin'
+      ];
+      allForms.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+      });
+
+      const heading = document.getElementById('form-heading');
+      const subheading = document.getElementById('form-subheading');
+
+      if (flow === 'signup') {
+        if (role === 'student') {
+          heading.innerText = 'Sign Up as a Student';
+          subheading.innerText = 'Create your verified student account to participate in campus events.';
+          document.getElementById('form-signup-student').style.display = 'block';
+        } else if (role === 'club') {
+          heading.innerText = 'Sign Up as a Club Admin';
+          subheading.innerText = 'Register your student club or society on Eventra.';
+          document.getElementById('form-signup-club').style.display = 'block';
+        } else if (role === 'super_admin') {
+          heading.innerText = 'Sign Up as the Super Admin';
+          subheading.innerText = 'Provision an authorized system administrator account.';
+          document.getElementById('form-signup-super-admin').style.display = 'block';
+        }
+      } else {
+        if (role === 'student') {
+          heading.innerText = 'Log In as a Student';
+          subheading.innerText = 'Enter your email and password to access your student portal.';
+          document.getElementById('form-login-student').style.display = 'block';
+        } else if (role === 'club') {
+          heading.innerText = 'Log In as a Club Admin';
+          subheading.innerText = 'Enter your club administrator credentials.';
+          document.getElementById('form-login-club').style.display = 'block';
+        } else if (role === 'super_admin') {
+          heading.innerText = 'Log In as the Super Admin';
+          subheading.innerText = 'Access the platform administration console.';
+          document.getElementById('form-login-super-admin').style.display = 'block';
+        }
+      }
+    }
+
+    // Password Visibility Toggle
+    function togglePasswordVisibility(inputId, btn) {
+      const input = document.getElementById(inputId);
+      if (!input) return;
+      if (input.type === 'password') {
+        input.type = 'text';
+        btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+      } else {
+        input.type = 'password';
+        btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+      }
+    }
+
+    // Alert helpers
+    function showAlert(msg, type = 'error') {
+      const box = document.getElementById('global-alert');
+      if (!box) return;
+      box.className = `alert-banner alert-${type}`;
+      box.innerHTML = msg;
+      box.style.display = 'block';
+      box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function clearAlert() {
+      const box = document.getElementById('global-alert');
+      if (box) {
+        box.innerHTML = '';
+        box.style.display = 'none';
+      }
+    }
+
+    // Field-level error helpers
+    function setFieldError(fieldId, errorMsg) {
+      const input = document.getElementById(fieldId);
+      const errEl = document.getElementById('err-' + fieldId);
+      if (input) input.classList.add('input-invalid');
+      if (errEl) {
+        errEl.innerText = errorMsg;
+        errEl.classList.add('visible');
+      }
+    }
+
+    function clearFieldError(fieldId) {
+      const input = document.getElementById(fieldId);
+      const errEl = document.getElementById('err-' + fieldId);
+      if (input) input.classList.remove('input-invalid');
+      if (errEl) {
+        errEl.innerText = '';
+        errEl.classList.remove('visible');
+      }
+    }
+
+    function clearFieldErrors() {
+      document.querySelectorAll('.form-control').forEach(el => el.classList.remove('input-invalid'));
+      document.querySelectorAll('.field-error-msg').forEach(el => {
+        el.innerText = '';
+        el.classList.remove('visible');
+      });
+    }
+
+    // Button loading helper
+    function setButtonLoading(btnId, loading, defaultText) {
+      const btn = document.getElementById(btnId);
+      if (!btn) return;
+      if (loading) {
+        btn.disabled = true;
+        btn.innerHTML = `<span class="btn-spinner"></span><span>Processing...</span>`;
+      } else {
+        btn.disabled = false;
+        btn.innerHTML = `<span>${defaultText}</span>`;
+      }
+    }
+
+    // Role Redirection
+    function redirectByRole(role) {
+      if (role === 'club_admin') {
+        window.location.href = 'dashboard-club.html';
+      } else if (role === 'super_admin') {
+        window.location.href = 'dashboard-admin.html';
+      } else {
+        window.location.href = 'dashboard-student.html';
+      }
+    }
+
+    // ========================================================
+    // 3.1 SUBMIT: STUDENT SIGN UP
+    // ========================================================
+    async function submitStudentSignup(e) {
+      e.preventDefault();
+      if (isSubmitting) return;
+
+      clearAlert();
+      clearFieldErrors();
+
+      const firstName = document.getElementById('stu-signup-first-name').value.trim();
+      const lastName = document.getElementById('stu-signup-last-name').value.trim();
+      const email = document.getElementById('stu-signup-email').value.trim();
+      const regNo = document.getElementById('stu-signup-reg-no').value.trim();
+      const session = document.getElementById('stu-signup-session').value.trim();
+      const dept = document.getElementById('stu-signup-dept').value.trim();
+      const password = document.getElementById('stu-signup-pass').value;
+
+      let hasError = false;
+
+      if (!firstName) {
+        setFieldError('stu-signup-first-name', 'First name is required');
+        hasError = true;
+      }
+      if (!lastName) {
+        setFieldError('stu-signup-last-name', 'Last name is required');
+        hasError = true;
+      }
+      if (!email) {
+        setFieldError('stu-signup-email', 'Email address is required');
+        hasError = true;
+      } else if (!EMAIL_REGEX.test(email)) {
+        setFieldError('stu-signup-email', 'Please enter a valid email address');
+        hasError = true;
+      }
+      if (!regNo) {
+        setFieldError('stu-signup-reg-no', 'Registration number is required');
+        hasError = true;
+      }
+      if (!session) {
+        setFieldError('stu-signup-session', 'Academic session is required');
+        hasError = true;
+      }
+      if (!dept) {
+        setFieldError('stu-signup-dept', 'Department is required');
+        hasError = true;
+      }
+      if (!password) {
+        setFieldError('stu-signup-pass', 'Password is required');
+        hasError = true;
+      } else if (password.length < 8) {
+        setFieldError('stu-signup-pass', 'Password must contain at least 8 characters');
+        hasError = true;
+      }
+
+      if (hasError) return;
+
+      isSubmitting = true;
+      setButtonLoading('btn-submit-signup-student', true, 'Create Student Account');
+
+      try {
+        const res = await window.api.post('/auth/register/student', {
+          first_name: firstName,
+          last_name: lastName,
+          email: email,
+          registration_number: regNo,
+          academic_session: session,
+          department: dept,
+          password: password
+        });
+
+        const user = res.data?.user;
+        const token = res.data?.token;
+        if (token) window.api.setToken(token);
+        if (user) window.api.setUser(user);
+
+        showAlert('Student account created successfully! Redirecting...', 'success');
+        setTimeout(() => redirectByRole('student'), 800);
+      } catch (err) {
+        handleAuthApiError(err, {
+          first_name: 'stu-signup-first-name',
+          last_name: 'stu-signup-last-name',
+          email: 'stu-signup-email',
+          registration_number: 'stu-signup-reg-no',
+          academic_session: 'stu-signup-session',
+          department: 'stu-signup-dept',
+          password: 'stu-signup-pass'
+        });
+      } finally {
+        isSubmitting = false;
+        setButtonLoading('btn-submit-signup-student', false, 'Create Student Account');
+      }
+    }
+
+    // ========================================================
+    // 3.2 SUBMIT: CLUB ADMIN SIGN UP
+    // ========================================================
+    async function submitClubSignup(e) {
+      e.preventDefault();
+      if (isSubmitting) return;
+
+      clearAlert();
+      clearFieldErrors();
+
+      const clubName = document.getElementById('club-signup-name').value.trim();
+      const clubDesc = document.getElementById('club-signup-desc').value.trim();
+      const email = document.getElementById('club-signup-email').value.trim();
+      const password = document.getElementById('club-signup-pass').value;
+
+      let hasError = false;
+
+      if (!clubName) {
+        setFieldError('club-signup-name', 'Club name is required');
+        hasError = true;
+      }
+      if (!clubDesc) {
+        setFieldError('club-signup-desc', 'Club description is required');
+        hasError = true;
+      }
+      if (!email) {
+        setFieldError('club-signup-email', 'Email address is required');
+        hasError = true;
+      } else if (!EMAIL_REGEX.test(email)) {
+        setFieldError('club-signup-email', 'Please enter a valid email address');
+        hasError = true;
+      }
+      if (!password) {
+        setFieldError('club-signup-pass', 'Password is required');
+        hasError = true;
+      } else if (password.length < 8) {
+        setFieldError('club-signup-pass', 'Password must contain at least 8 characters');
+        hasError = true;
+      }
+
+      if (hasError) return;
+
+      isSubmitting = true;
+      setButtonLoading('btn-submit-signup-club', true, 'Register Club Application');
+
+      try {
+        const res = await window.api.post('/auth/register/club', {
+          club_name: clubName,
+          club_description: clubDesc,
+          email: email,
+          password: password
+        });
+
+        const user = res.data?.user;
+        const token = res.data?.token;
+        if (token) window.api.setToken(token);
+        if (user) window.api.setUser(user);
+
+        showAlert('Club application submitted successfully! Your registration is pending Super Admin verification.', 'success');
+        setTimeout(() => {
+          showAlert('Your club is in pending verification state. You can view your status in the Club Portal.', 'warning');
+          setTimeout(() => redirectByRole('club_admin'), 1500);
+        }, 1000);
+      } catch (err) {
+        handleAuthApiError(err, {
+          club_name: 'club-signup-name',
+          club_description: 'club-signup-desc',
+          email: 'club-signup-email',
+          password: 'club-signup-pass'
+        });
+      } finally {
+        isSubmitting = false;
+        setButtonLoading('btn-submit-signup-club', false, 'Register Club Application');
+      }
+    }
+
+    // ========================================================
+    // 3.3 SUBMIT: SUPER ADMIN SIGN UP (Restricted)
+    // ========================================================
+    async function submitSuperAdminSignup(e) {
+      e.preventDefault();
+      if (isSubmitting) return;
+
+      clearAlert();
+      clearFieldErrors();
+
+      const email = document.getElementById('sa-signup-email').value.trim();
+      const password = document.getElementById('sa-signup-pass').value;
+      const bootstrapKey = document.getElementById('sa-signup-key').value.trim();
+
+      let hasError = false;
+
+      if (!email) {
+        setFieldError('sa-signup-email', 'Email address is required');
+        hasError = true;
+      } else if (!EMAIL_REGEX.test(email)) {
+        setFieldError('sa-signup-email', 'Please enter a valid email address');
+        hasError = true;
+      }
+      if (!password) {
+        setFieldError('sa-signup-pass', 'Password is required');
+        hasError = true;
+      } else if (password.length < 8) {
+        setFieldError('sa-signup-pass', 'Password must contain at least 8 characters');
+        hasError = true;
+      }
+      if (!bootstrapKey) {
+        setFieldError('sa-signup-key', 'System bootstrap authorization key is required');
+        hasError = true;
+      }
+
+      if (hasError) return;
+
+      isSubmitting = true;
+      setButtonLoading('btn-submit-signup-sa', true, 'Authorize & Create Super Admin');
+
+      try {
+        const res = await window.api.post('/auth/register/super-admin', {
+          email: email,
+          password: password,
+          bootstrap_key: bootstrapKey
+        }, {
+          headers: {
+            'X-Bootstrap-Key': bootstrapKey
+          }
+        });
+
+        const user = res.data?.user;
+        const token = res.data?.token;
+        if (token) window.api.setToken(token);
+        if (user) window.api.setUser(user);
+
+        showAlert('Super Admin account created successfully! Redirecting to Admin Console...', 'success');
+        setTimeout(() => redirectByRole('super_admin'), 900);
+      } catch (err) {
+        if (err.status === 403) {
+          setFieldError('sa-signup-key', 'Invalid or unauthorized bootstrap key');
+          showAlert('Unauthorized: Super Admin registration requires a valid system bootstrap authorization key.', 'error');
+        } else {
+          handleAuthApiError(err, {
+            email: 'sa-signup-email',
+            password: 'sa-signup-pass',
+            bootstrap_key: 'sa-signup-key'
+          });
+        }
+      } finally {
+        isSubmitting = false;
+        setButtonLoading('btn-submit-signup-sa', false, 'Authorize & Create Super Admin');
+      }
+    }
+
+    // ========================================================
+    // 4.1 SUBMIT: STUDENT LOG IN
+    // ========================================================
+    async function submitStudentLogin(e) {
+      e.preventDefault();
+      if (isSubmitting) return;
+
+      clearAlert();
+      clearFieldErrors();
+
+      const email = document.getElementById('stu-login-email').value.trim();
+      const password = document.getElementById('stu-login-pass').value;
+
+      let hasError = false;
+      if (!email) {
+        setFieldError('stu-login-email', 'Email is required');
+        hasError = true;
+      } else if (!EMAIL_REGEX.test(email)) {
+        setFieldError('stu-login-email', 'Please enter a valid email address');
+        hasError = true;
+      }
+      if (!password) {
+        setFieldError('stu-login-pass', 'Password is required');
+        hasError = true;
+      }
+
+      if (hasError) return;
+
+      isSubmitting = true;
+      setButtonLoading('btn-submit-login-student', true, 'Log In as Student');
+
+      try {
+        const res = await window.api.post('/auth/login/student', { email, password, role: 'student' });
+        const user = res.data?.user;
+        const token = res.data?.token;
+
+        if (token) window.api.setToken(token);
+        if (user) window.api.setUser(user);
+
+        showAlert(`Welcome back, ${user?.name || user?.email}!`, 'success');
+        setTimeout(() => redirectByRole('student'), 600);
+      } catch (err) {
+        showAlert('Invalid email or password.', 'error');
+      } finally {
+        isSubmitting = false;
+        setButtonLoading('btn-submit-login-student', false, 'Log In as Student');
+      }
+    }
+
+    // ========================================================
+    // 4.2 SUBMIT: CLUB ADMIN LOG IN
+    // ========================================================
+    async function submitClubLogin(e) {
+      e.preventDefault();
+      if (isSubmitting) return;
+
+      clearAlert();
+      clearFieldErrors();
+      document.getElementById('club-pending-status-box').style.display = 'none';
+
+      const email = document.getElementById('club-login-email').value.trim();
+      const password = document.getElementById('club-login-pass').value;
+
+      let hasError = false;
+      if (!email) {
+        setFieldError('club-login-email', 'Email is required');
+        hasError = true;
+      } else if (!EMAIL_REGEX.test(email)) {
+        setFieldError('club-login-email', 'Please enter a valid email address');
+        hasError = true;
+      }
+      if (!password) {
+        setFieldError('club-login-pass', 'Password is required');
+        hasError = true;
+      }
+
+      if (hasError) return;
+
+      isSubmitting = true;
+      setButtonLoading('btn-submit-login-club', true, 'Log In as Club Admin');
+
+      try {
+        const res = await window.api.post('/auth/login/club', { email, password, role: 'club_admin' });
+        const user = res.data?.user;
+        const token = res.data?.token;
+
+        if (token) window.api.setToken(token);
+        if (user) window.api.setUser(user);
+
+        const clubStatus = user?.club_status || user?.clubStatus;
+        if (clubStatus === 'pending') {
+          document.getElementById('club-pending-name').innerText = user?.club_name || user?.name || 'Club';
+          document.getElementById('club-pending-status-box').style.display = 'block';
+          showAlert('Club registration is pending verification by Super Admin. Administrative access is restricted until approved.', 'warning');
+          setTimeout(() => redirectByRole('club_admin'), 2200);
+        } else {
+          showAlert(`Welcome back! Logged in as ${user?.club_name || user?.email}`, 'success');
+          setTimeout(() => redirectByRole('club_admin'), 600);
+        }
+      } catch (err) {
+        showAlert('Invalid email or password.', 'error');
+      } finally {
+        isSubmitting = false;
+        setButtonLoading('btn-submit-login-club', false, 'Log In as Club Admin');
+      }
+    }
+
+    // ========================================================
+    // 4.3 SUBMIT: SUPER ADMIN LOG IN
+    // ========================================================
+    async function submitSuperAdminLogin(e) {
+      e.preventDefault();
+      if (isSubmitting) return;
+
+      clearAlert();
+      clearFieldErrors();
+
+      const email = document.getElementById('sa-login-email').value.trim();
+      const password = document.getElementById('sa-login-pass').value;
+
+      let hasError = false;
+      if (!email) {
+        setFieldError('sa-login-email', 'Email is required');
+        hasError = true;
+      } else if (!EMAIL_REGEX.test(email)) {
+        setFieldError('sa-login-email', 'Please enter a valid email address');
+        hasError = true;
+      }
+      if (!password) {
+        setFieldError('sa-login-pass', 'Password is required');
+        hasError = true;
+      }
+
+      if (hasError) return;
+
+      isSubmitting = true;
+      setButtonLoading('btn-submit-login-sa', true, 'Log In as Super Admin');
+
+      try {
+        const res = await window.api.post('/auth/login/super-admin', { email, password, role: 'super_admin' });
+        const user = res.data?.user;
+        const token = res.data?.token;
+
+        if (token) window.api.setToken(token);
+        if (user) window.api.setUser(user);
+
+        showAlert('Super Admin authentication successful! Redirecting to Admin Console...', 'success');
+        setTimeout(() => redirectByRole('super_admin'), 600);
+      } catch (err) {
+        showAlert('Invalid email or password.', 'error');
+      } finally {
+        isSubmitting = false;
+        setButtonLoading('btn-submit-login-sa', false, 'Log In as Super Admin');
+      }
+    }
+
+    // Generic API Error Handler for Forms
+    function handleAuthApiError(err, fieldMap = {}) {
+      const errorMsg = err.message || 'An error occurred during authentication.';
+      showAlert(errorMsg, 'error');
+
+      if (err.data && Array.isArray(err.data.data)) {
+        err.data.data.forEach(item => {
+          if (item.field && fieldMap[item.field]) {
+            setFieldError(fieldMap[item.field], item.message);
+          }
+        });
+      } else {
+        const lower = errorMsg.toLowerCase();
+        if (lower.includes('email') && fieldMap.email) {
+          setFieldError(fieldMap.email, errorMsg);
+        } else if (lower.includes('password') && fieldMap.password) {
+          setFieldError(fieldMap.password, errorMsg);
+        } else if (lower.includes('registration number') && fieldMap.registration_number) {
+          setFieldError(fieldMap.registration_number, errorMsg);
+        } else if (lower.includes('club name') && fieldMap.club_name) {
+          setFieldError(fieldMap.club_name, errorMsg);
+        }
+      }
+    }
+
+    // Password reset helper
+    async function handleForgotPasswordPrompt() {
+      const email = prompt('Enter your registered Eventra email address to receive password reset instructions:');
+      if (email && email.trim()) {
+        try {
+          await window.api.post('/auth/forgot-password', { email: email.trim() });
+          showAlert('If an account exists for this email, password reset instructions have been dispatched.', 'success');
+        } catch {
+          showAlert('If an account exists for this email, password reset instructions have been dispatched.', 'success');
+        }
+      }
+    }
+  </script>
 </body>
 </html>
