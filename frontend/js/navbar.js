@@ -62,7 +62,6 @@ function initNavbar() {
           <li><a href="index.html" class="nav-link ${currentPath.endsWith('index.html') || currentPath.endsWith('/') ? 'active' : ''}">Home</a></li>
           <li><a href="events.html" class="nav-link ${currentPath.includes('event') ? 'active' : ''}">Events</a></li>
           <li><a href="clubs.html" class="nav-link ${currentPath.includes('club') && !currentPath.includes('dashboard') ? 'active' : ''}">Clubs</a></li>
-          <li><a href="events.html#timeline" class="nav-link">Timeline</a></li>
           <li><button class="btn btn-sm btn-glass" onclick="openFeedbackModal()" style="padding: 0.35rem 0.8rem; font-size: 0.82rem;">Feedback</button></li>
         </ul>
 
