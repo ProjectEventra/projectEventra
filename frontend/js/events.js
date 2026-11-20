@@ -237,25 +237,32 @@ async function loadTimeline(containerId) {
     }
 
     container.innerHTML = items.map(item => {
-      const dateStr = new Date(item.date).toLocaleDateString('en-US', {
+      const title = item.name || item.title || 'Campus Event';
+      const clubName = item.club_name || 'University Club';
+      const rawDate = item.event_date || item.start_time || item.date || new Date();
+      const dateStr = new Date(rawDate).toLocaleDateString('en-US', {
         weekday: 'short',
         month: 'short',
         day: 'numeric'
+      });
+      const timeStr = item.time || new Date(rawDate).toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit'
       });
       return `
         <div class="timeline-node">
           <div class="timeline-dot"></div>
           <div class="glass-card" style="padding:1.25rem 1.5rem;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
-              <span class="badge badge-cyan">${escapeHtml(item.club_name)}</span>
+              <span class="badge badge-cyan">${escapeHtml(clubName)}</span>
               <span style="font-family:var(--font-mono); font-size:0.8rem; color:var(--accent-cyan); font-weight:600;">${dateStr}</span>
             </div>
             <h4 style="font-size:1.1rem; margin-bottom:0.35rem;">
-              <a href="event-detail.html?id=${item.id}" style="color:var(--text-main);">${escapeHtml(item.title)}</a>
+              <a href="event-detail.html?id=${item.id}" style="color:var(--text-main);">${escapeHtml(title)}</a>
             </h4>
             <div style="display:flex; align-items:center; gap:1.25rem; font-size:0.82rem; color:var(--text-muted);">
               <span>📍 ${escapeHtml(item.venue || 'Main Campus')}</span>
-              <span>⏰ ${escapeHtml(item.time || '10:00 AM')}</span>
+              <span>⏰ ${escapeHtml(timeStr)}</span>
             </div>
           </div>
         </div>
